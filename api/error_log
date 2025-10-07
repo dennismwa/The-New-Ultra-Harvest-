@@ -1,0 +1,24 @@
+[20-Sep-2025 19:50:44 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[20-Sep-2025 19:50:50 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[04-Oct-2025 17:58:23 UTC] M-Pesa Callback: CheckoutRequestID=ws_CO_04102025205808661758256440, ResultCode=1032, ResultDesc=Request Cancelled by user.
+[04-Oct-2025 17:58:23 UTC] M-Pesa Payment Cancelled: User Dennis, Amount: 100.00, Reason: Request Cancelled by user.
+[04-Oct-2025 18:31:05 UTC] M-Pesa Callback: CheckoutRequestID=ws_CO_04102025213055490741181207, ResultCode=1032, ResultDesc=Request Cancelled by user.
+[04-Oct-2025 18:31:05 UTC] M-Pesa Payment Cancelled: User Waweru, Amount: 100.00, Reason: Request Cancelled by user.
+[05-Oct-2025 02:54:40 UTC] M-Pesa Callback: CheckoutRequestID=ws_CO_05102025055427069741181207, ResultCode=0, ResultDesc=The service request is processed successfully.
+[05-Oct-2025 02:54:40 UTC] M-Pesa Deposit Success: User Waweru, Amount: 100.00, Receipt: TJ50W6HZMX
+[05-Oct-2025 02:54:40 UTC] Email Notification: To: fredkiarieblog@gmail.com, Subject: Payment Successful - Ultra Harvest, Status: success
+[05-Oct-2025 02:55:09 UTC] M-Pesa Callback: CheckoutRequestID=ws_CO_05102025055500045741181207, ResultCode=1032, ResultDesc=Request Cancelled by user.
+[05-Oct-2025 02:55:09 UTC] M-Pesa Payment Cancelled: User Waweru, Amount: 100.00, Reason: Request Cancelled by user.
+[05-Oct-2025 08:30:31 UTC] M-Pesa Callback: CheckoutRequestID=ws_CO_05102025113006090758256440, ResultCode=1, ResultDesc=The balance is insufficient for the transaction.
+[05-Oct-2025 08:30:31 UTC] M-Pesa Payment Cancelled: User Dennis, Amount: 100.00, Reason: The balance is insufficient for the transaction.
+[06-Oct-2025 15:50:18 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[06-Oct-2025 15:50:19 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[06-Oct-2025 15:50:21 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[06-Oct-2025 15:51:42 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[06-Oct-2025 15:51:43 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[06-Oct-2025 15:51:43 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[06-Oct-2025 15:51:44 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[06-Oct-2025 15:51:45 UTC] PHP Parse error:  syntax error, unexpected token "-" in /home/zurihubc/ultraharvest.zurihub.co.ke/api/mark-notification-read.php on line 49
+[07-Oct-2025 11:57:00 Africa/Nairobi] M-Pesa Callback: CheckoutRequestID=ws_CO_07102025115645429758256440, ResultCode=0, ResultDesc=The service request is processed successfully.
+[07-Oct-2025 11:57:00 Africa/Nairobi] M-Pesa Deposit Success: User System Administrator, Amount: 1.00, Receipt: TJ7NS6RCWR
+[07-Oct-2025 11:57:00 Africa/Nairobi] Email Notification: To: admin@ultraharvest.com, Subject: Payment Successful - Ultra Harvest, Status: success

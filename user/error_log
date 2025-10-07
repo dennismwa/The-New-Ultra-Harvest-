@@ -1,0 +1,57 @@
+[18-Sep-2025 14:39:45 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'zurihubc_Ultra Harvest.user_settings' doesn't exist in /home/zurihubc/ultraharvest.zurihub.co.ke/user/settings.php:143
+Stack trace:
+#0 /home/zurihubc/ultraharvest.zurihub.co.ke/user/settings.php(143): PDO->prepare('SELECT * FROM u...')
+#1 {main}
+  thrown in /home/zurihubc/ultraharvest.zurihub.co.ke/user/settings.php on line 143
+[20-Sep-2025 14:00:31 UTC] PHP Warning:  require_once(config/database.php): Failed to open stream: No such file or directory in /home/zurihubc/ultraharvest.zurihub.co.ke/user/help.php on line 2
+[20-Sep-2025 14:00:31 UTC] PHP Fatal error:  Uncaught Error: Failed opening required 'config/database.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home/zurihubc/ultraharvest.zurihub.co.ke/user/help.php:2
+Stack trace:
+#0 {main}
+  thrown in /home/zurihubc/ultraharvest.zurihub.co.ke/user/help.php on line 2
+[04-Oct-2025 17:35:30 UTC] M-Pesa STK Push failed: Transaction ID 33, Amount: 100, Phone: 254758256440, Error: Invalid phone number format. Use 254XXXXXXXXX
+[04-Oct-2025 17:35:30 UTC] M-Pesa STK Push Failed - User: 2, Amount: 100, Phone: 254758256440, Error: Invalid phone number format. Use 254XXXXXXXXX
+[04-Oct-2025 17:36:34 UTC] M-Pesa STK Push failed: Transaction ID 34, Amount: 100, Phone: 254758256440, Error: Invalid phone number format. Use 254XXXXXXXXX
+[04-Oct-2025 17:36:34 UTC] M-Pesa STK Push Failed - User: 2, Amount: 100, Phone: 254758256440, Error: Invalid phone number format. Use 254XXXXXXXXX
+[04-Oct-2025 17:44:52 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/zurihubc/ultraharvest.zurihub.co.ke/config/database.php on line 39
+[04-Oct-2025 17:44:52 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/zurihubc/ultraharvest.zurihub.co.ke/user/deposit.php:20) in /home/zurihubc/ultraharvest.zurihub.co.ke/config/database.php on line 55
+[04-Oct-2025 17:44:57 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/zurihubc/ultraharvest.zurihub.co.ke/config/database.php on line 39
+[04-Oct-2025 17:44:57 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/zurihubc/ultraharvest.zurihub.co.ke/user/deposit.php:20) in /home/zurihubc/ultraharvest.zurihub.co.ke/config/database.php on line 55
+[04-Oct-2025 17:58:08 UTC] M-Pesa STK Push initiated: Transaction ID 35, Amount: 100, Phone: 254758256440, CheckoutRequestID: ws_CO_04102025205808661758256440
+[04-Oct-2025 18:30:54 UTC] M-Pesa STK Push initiated: Transaction ID 36, Amount: 100, Phone: 254741181207, CheckoutRequestID: ws_CO_04102025213055490741181207
+[05-Oct-2025 02:54:27 UTC] M-Pesa STK Push initiated: Transaction ID 37, Amount: 100, Phone: 254741181207, CheckoutRequestID: ws_CO_05102025055427069741181207
+[05-Oct-2025 02:55:00 UTC] M-Pesa STK Push initiated: Transaction ID 38, Amount: 100, Phone: 254741181207, CheckoutRequestID: ws_CO_05102025055500045741181207
+[05-Oct-2025 07:46:48 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 12
+[05-Oct-2025 07:51:15 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 12
+[05-Oct-2025 07:51:17 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 12
+[05-Oct-2025 07:51:19 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 12
+[05-Oct-2025 07:52:26 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 12
+[05-Oct-2025 07:53:33 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 12
+[05-Oct-2025 07:55:16 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 13
+[05-Oct-2025 07:55:23 UTC] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 13
+[05-Oct-2025 08:01:04 UTC] PHP Parse error:  syntax error, unexpected token "=" in /home/zurihubc/ultraharvest.zurihub.co.ke/user/withdraw.php on line 26
+[05-Oct-2025 08:30:07 UTC] M-Pesa STK Push initiated: Transaction ID 1, Amount: 100, Phone: 254758256440, CheckoutRequestID: ws_CO_05102025113006090758256440
+[07-Oct-2025 22:46:06 Africa/Nairobi] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ap.updated_at' in 'ORDER BY' in /home/theultra/public_html/user/active-trades.php:40
+Stack trace:
+#0 /home/theultra/public_html/user/active-trades.php(40): PDO->prepare('\r\n    SELECT ap...')
+#1 {main}
+  thrown in /home/theultra/public_html/user/active-trades.php on line 40
+[07-Oct-2025 22:48:16 Africa/Nairobi] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ap.updated_at' in 'ORDER BY' in /home/theultra/public_html/user/active-trades.php:53
+Stack trace:
+#0 /home/theultra/public_html/user/active-trades.php(53): PDO->prepare('\r\n    SELECT ap...')
+#1 {main}
+  thrown in /home/theultra/public_html/user/active-trades.php on line 53
+[07-Oct-2025 22:48:19 Africa/Nairobi] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ap.updated_at' in 'ORDER BY' in /home/theultra/public_html/user/active-trades.php:53
+Stack trace:
+#0 /home/theultra/public_html/user/active-trades.php(53): PDO->prepare('\r\n    SELECT ap...')
+#1 {main}
+  thrown in /home/theultra/public_html/user/active-trades.php on line 53
+[07-Oct-2025 22:48:22 Africa/Nairobi] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ap.updated_at' in 'ORDER BY' in /home/theultra/public_html/user/active-trades.php:53
+Stack trace:
+#0 /home/theultra/public_html/user/active-trades.php(53): PDO->prepare('\r\n    SELECT ap...')
+#1 {main}
+  thrown in /home/theultra/public_html/user/active-trades.php on line 53
+[07-Oct-2025 22:48:24 Africa/Nairobi] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'ap.updated_at' in 'ORDER BY' in /home/theultra/public_html/user/active-trades.php:53
+Stack trace:
+#0 /home/theultra/public_html/user/active-trades.php(53): PDO->prepare('\r\n    SELECT ap...')
+#1 {main}
+  thrown in /home/theultra/public_html/user/active-trades.php on line 53
