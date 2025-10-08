@@ -42,11 +42,12 @@ if ($_POST && isset($_POST['invest_package'])) {
             try {
                 $db->beginTransaction();
                 
-                // Deduct from wallet balance
-                $stmt = $db->prepare("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?");
-                $stmt->execute([$investment_amount, $user_id]);
+                // CRITICAL FIX: DO NOT deduct from wallet balance when investing
+                // User's wallet balance represents: Deposits + ROI Earned + Commissions - Withdrawals
+                // Investments are tracked separately in active_packages table
+                // The wallet balance should NEVER be reduced when a user invests
                 
-                // Create package investment transaction
+                // Only create the investment transaction record (for tracking purposes)
                 $stmt = $db->prepare("
                     INSERT INTO transactions (user_id, type, amount, status, description) 
                     VALUES (?, 'package_investment', ?, 'completed', ?)
@@ -66,7 +67,7 @@ if ($_POST && isset($_POST['invest_package'])) {
                 $db->commit();
                 $success = "Package activated successfully! Your investment will mature on " . date('M j, Y g:i A', strtotime($maturity_date));
                 
-                // Refresh user balance
+                // Refresh user balance (no change expected since we didn't deduct)
                 $stmt = $db->prepare("SELECT wallet_balance FROM users WHERE id = ?");
                 $stmt->execute([$user_id]);
                 $user = $stmt->fetch();
@@ -74,6 +75,7 @@ if ($_POST && isset($_POST['invest_package'])) {
             } catch (Exception $e) {
                 $db->rollBack();
                 $error = 'Failed to activate package. Please try again.';
+                error_log("Package activation error: " . $e->getMessage());
             }
         }
     }
@@ -184,11 +186,11 @@ $active_packages = $stmt->fetchAll();
                     
                     <!-- Desktop Navigation -->
                     <nav class="hidden md:flex space-x-6">
-                        <a href="/user/dashboard.php" class="text-gray-300 hover:text-emerald-400 transition">HOME</a>
-                        <a href="/user/packages.php" class="text-emerald-400 font-medium">TRADE</a>
-                        <a href="/user/referrals.php" class="text-gray-300 hover:text-emerald-400 transition">NETWORK</a>
-                        <a href="/user/active-trades.php" class="text-gray-300 hover:text-emerald-400 transition">ACTIVE TRADES</a>
-                        <a href="/user/support.php" class="text-gray-300 hover:text-emerald-400 transition">HELP</a>
+                        <a href="/user/dashboard.php" class="text-gray-300 hover:text-emerald-400 transition">Home</a>
+                        <a href="/user/packages.php" class="text-gray-300 hover:text-emerald-400 transition">Trade</a>
+                        <a href="/user/referrals.php" class="text-gray-300 hover:text-emerald-400 transition">Network</a>
+                        <a href="/user/active-trades.php" class="text-emerald-400 font-medium">Active Trades</a>
+                        <a href="/user/support.php" class="text-gray-300 hover:text-emerald-400 transition">Help</a>
                     </nav>
                 </div>
 
@@ -267,6 +269,26 @@ $active_packages = $stmt->fetchAll();
                         <div>
                             <p class="text-xs md:text-sm text-gray-400">ROI Rate</p>
                             <p class="text-sm md:text-base font-bold text-yellow-400"><?php echo $active['roi_percentage']; ?>%</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <?php
+                    $start_time = strtotime($active['created_at']);
+                    $end_time = strtotime($active['maturity_date']);
+                    $current_time = time();
+                    $total_duration = $end_time - $start_time;
+                    $elapsed = $current_time - $start_time;
+                    $progress = min(100, max(0, ($elapsed / $total_duration) * 100));
+                    ?>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-xs text-gray-400 mb-1">
+                            <span>Progress</span>
+                            <span><?php echo number_format($progress, 1); ?>%</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-emerald-500 to-yellow-500 h-2 rounded-full transition-all duration-300" 
+                                 style="width: <?php echo $progress; ?>%"></div>
                         </div>
                     </div>
                     
