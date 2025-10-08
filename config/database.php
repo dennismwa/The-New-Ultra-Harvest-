@@ -11,7 +11,7 @@ define('DB_USER', 'theultra_theultra');   // Your database username
 define('DB_PASS', 'PU7qh=43R0Bk7Jfb');   // Your database password
 
 // Site Configuration
-define('SITE_URL', 'https://ultraharvest.zurihub.co.ke');
+define('SITE_URL', 'https://theultraharvest.com/');
 define('SITE_NAME', 'Ultra Harvest Global');
 
 // Security
