@@ -108,8 +108,6 @@ $active_packages = $stmt->fetchAll();
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
-            /* Reduced size - showing 3 packages before scroll */
-            max-height: 450px;
         }
         
         .package-card:hover {
@@ -134,6 +132,7 @@ $active_packages = $stmt->fetchAll();
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: bold;
+            z-index: 10;
         }
         
         .roi-badge {
@@ -147,6 +146,27 @@ $active_packages = $stmt->fetchAll();
         .countdown {
             font-family: 'Courier New', monospace;
         }
+
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .package-card {
+                min-height: auto;
+            }
+            
+            .package-popular::before {
+                right: 10px;
+                top: -8px;
+                font-size: 0.65rem;
+                padding: 3px 10px;
+            }
+        }
+
+        /* Mobile bottom navigation spacing */
+        @media (max-width: 768px) {
+            main {
+                padding-bottom: 5rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -155,14 +175,14 @@ $active_packages = $stmt->fetchAll();
     <header class="bg-gray-800/50 backdrop-blur-md border-b border-gray-700 sticky top-0 z-50">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between h-16">
-                <div class="flex items-center space-x-8">
-                    <a href="/user/dashboard.php" class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full overflow-hidden" style="background: linear-gradient(45deg, #10b981, #fbbf24);">
+                <div class="flex items-center space-x-4 md:space-x-8">
+                    <a href="/user/dashboard.php" class="flex items-center space-x-2 md:space-x-3">
+                        <div class="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden" style="background: linear-gradient(45deg, #10b981, #fbbf24);">
                             <img src="/ultra%20Harvest%20Logo.jpg" alt="Ultra Harvest Global" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                         </div>
                     </a>
                     
-                    <!-- Updated Navigation Order -->
+                    <!-- Desktop Navigation -->
                     <nav class="hidden md:flex space-x-6">
                         <a href="/user/dashboard.php" class="text-gray-300 hover:text-emerald-400 transition">HOME</a>
                         <a href="/user/packages.php" class="text-emerald-400 font-medium">TRADE</a>
@@ -172,87 +192,87 @@ $active_packages = $stmt->fetchAll();
                     </nav>
                 </div>
 
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2 bg-gray-700/50 rounded-full px-4 py-2">
-                        <i class="fas fa-wallet text-emerald-400"></i>
-                        <span class="text-sm text-gray-300">Balance:</span>
-                        <span class="font-bold text-white" id="wallet-balance"><?php echo formatMoney($user['wallet_balance']); ?></span>
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <!-- Wallet Balance - Responsive -->
+                    <div class="flex items-center space-x-1 md:space-x-2 bg-gray-700/50 rounded-full px-2 md:px-4 py-1 md:py-2">
+                        <i class="fas fa-wallet text-emerald-400 text-sm md:text-base"></i>
+                        <span class="text-xs md:text-sm text-gray-300 hidden sm:inline">Balance:</span>
+                        <span class="font-bold text-white text-xs md:text-base" id="wallet-balance"><?php echo formatMoney($user['wallet_balance']); ?></span>
                     </div>
                     <a href="/user/dashboard.php" class="text-gray-400 hover:text-white">
-                        <i class="fas fa-home text-xl"></i>
+                        <i class="fas fa-home text-lg md:text-xl"></i>
                     </a>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-6 md:py-8">
         
-        <!-- Page Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl lg:text-5xl font-bold mb-4">
+        <!-- Page Header - Responsive -->
+        <div class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4">
                 Choose Your <span class="bg-gradient-to-r from-emerald-400 to-yellow-400 bg-clip-text text-transparent">Trading Package</span>
             </h1>
-            <!-- Updated text as per requirements -->
-            <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p class="text-base md:text-xl text-gray-300 max-w-2xl mx-auto px-4">
                 Pick a plan, copy professional traders, and start earning with zero stress.
             </p>
         </div>
 
         <!-- Error/Success Messages -->
         <?php if (isset($error)): ?>
-        <div class="max-w-2xl mx-auto mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle text-red-400 mr-2"></i>
-                <span class="text-red-300"><?php echo $error; ?></span>
+        <div class="max-w-2xl mx-auto mb-6 p-3 md:p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-circle text-red-400 mr-2 mt-0.5"></i>
+                <span class="text-red-300 text-sm md:text-base"><?php echo $error; ?></span>
             </div>
         </div>
         <?php endif; ?>
 
         <?php if (isset($success)): ?>
-        <div class="max-w-2xl mx-auto mb-6 p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg">
-            <div class="flex items-center">
-                <i class="fas fa-check-circle text-emerald-400 mr-2"></i>
-                <span class="text-emerald-300"><?php echo $success; ?></span>
+        <div class="max-w-2xl mx-auto mb-6 p-3 md:p-4 bg-emerald-500/20 border border-emerald-500/50 rounded-lg">
+            <div class="flex items-start">
+                <i class="fas fa-check-circle text-emerald-400 mr-2 mt-0.5"></i>
+                <span class="text-emerald-300 text-sm md:text-base"><?php echo $success; ?></span>
             </div>
         </div>
         <?php endif; ?>
 
-        <!-- Active Packages Section -->
+        <!-- Active Packages Section - Responsive -->
         <?php if (!empty($active_packages)): ?>
-        <section class="mb-12">
-            <h2 class="text-2xl font-bold mb-6">Your Active Packages</h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section class="mb-8 md:mb-12">
+            <h2 class="text-xl md:text-2xl font-bold mb-4 md:mb-6">Your Active Packages</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 <?php foreach ($active_packages as $active): ?>
-                <div class="package-card rounded-xl p-6 border-emerald-500/30">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="text-3xl"><?php echo $active['icon']; ?></div>
+                <div class="package-card rounded-xl p-4 md:p-6 border-emerald-500/30">
+                    <div class="flex items-center justify-between mb-3 md:mb-4">
+                        <div class="flex items-center space-x-2 md:space-x-3">
+                            <div class="text-2xl md:text-3xl"><?php echo $active['icon']; ?></div>
                             <div>
-                                <h3 class="font-bold text-white"><?php echo $active['package_name']; ?></h3>
-                                <p class="text-sm text-emerald-400">Active Package</p>
+                                <h3 class="font-bold text-white text-sm md:text-base"><?php echo $active['package_name']; ?></h3>
+                                <p class="text-xs md:text-sm text-emerald-400">Active Package</p>
                             </div>
                         </div>
                         <div class="text-right">
-                            <p class="text-lg font-bold text-white"><?php echo formatMoney($active['investment_amount']); ?></p>
-                            <p class="text-sm text-gray-400">Invested</p>
+                            <p class="text-base md:text-lg font-bold text-white"><?php echo formatMoney($active['investment_amount']); ?></p>
+                            <p class="text-xs md:text-sm text-gray-400">Invested</p>
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-2 gap-3 md:gap-4 mb-3 md:mb-4">
                         <div>
-                            <p class="text-sm text-gray-400">Expected ROI</p>
-                            <p class="font-bold text-emerald-400"><?php echo formatMoney($active['expected_roi']); ?></p>
+                            <p class="text-xs md:text-sm text-gray-400">Expected ROI</p>
+                            <p class="text-sm md:text-base font-bold text-emerald-400"><?php echo formatMoney($active['expected_roi']); ?></p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-400">ROI Rate</p>
-                            <p class="font-bold text-yellow-400"><?php echo $active['roi_percentage']; ?>%</p>
+                            <p class="text-xs md:text-sm text-gray-400">ROI Rate</p>
+                            <p class="text-sm md:text-base font-bold text-yellow-400"><?php echo $active['roi_percentage']; ?>%</p>
                         </div>
                     </div>
                     
-                    <div class="bg-gray-800/50 rounded-lg p-3">
-                        <p class="text-sm text-gray-400 mb-1">Matures in:</p>
-                        <div class="countdown text-lg font-bold text-white" data-maturity="<?php echo $active['maturity_date']; ?>">
+                    <div class="bg-gray-800/50 rounded-lg p-2 md:p-3">
+                        <p class="text-xs md:text-sm text-gray-400 mb-1">Matures in:</p>
+                        <div class="countdown text-base md:text-lg font-bold text-white" data-maturity="<?php echo $active['maturity_date']; ?>">
                             Calculating...
                         </div>
                     </div>
@@ -262,32 +282,32 @@ $active_packages = $stmt->fetchAll();
         </section>
         <?php endif; ?>
 
-        <!-- Available Packages - Reduced size to show 3 before scrolling -->
+        <!-- Available Packages - Responsive Grid -->
         <section>
-            <h2 class="text-2xl font-bold mb-6">Available Trading Packages</h2>
+            <h2 class="text-xl md:text-2xl font-bold mb-4 md:mb-6">Available Trading Packages</h2>
             
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
                 <?php foreach ($packages as $index => $package): ?>
-                <div class="package-card rounded-xl p-6 <?php echo $index === 1 ? 'package-popular' : ''; ?>">
-                    <div class="text-center mb-6">
-                        <div class="text-6xl mb-4"><?php echo $package['icon']; ?></div>
-                        <h3 class="text-2xl font-bold text-white mb-2"><?php echo $package['name']; ?></h3>
+                <div class="package-card rounded-xl p-4 md:p-6 <?php echo $index === 1 ? 'package-popular' : ''; ?>">
+                    <div class="text-center mb-4 md:mb-6">
+                        <div class="text-4xl md:text-6xl mb-3 md:mb-4"><?php echo $package['icon']; ?></div>
+                        <h3 class="text-xl md:text-2xl font-bold text-white mb-2"><?php echo $package['name']; ?></h3>
                         <?php if ($package['description']): ?>
-                        <p class="text-gray-400 text-sm"><?php echo $package['description']; ?></p>
+                        <p class="text-gray-400 text-xs md:text-sm"><?php echo $package['description']; ?></p>
                         <?php endif; ?>
                     </div>
 
-                    <div class="space-y-4 mb-6">
+                    <div class="space-y-3 md:space-y-4 mb-4 md:mb-6">
                         <!-- ROI -->
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">ROI Percentage</span>
-                            <span class="roi-badge text-white px-3 py-1 rounded-full font-bold"><?php echo $package['roi_percentage']; ?>%</span>
+                            <span class="text-gray-400 text-sm md:text-base">ROI Percentage</span>
+                            <span class="roi-badge text-white px-2 md:px-3 py-1 rounded-full font-bold text-xs md:text-sm"><?php echo $package['roi_percentage']; ?>%</span>
                         </div>
 
                         <!-- Duration -->
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Duration</span>
-                            <span class="duration-badge text-white px-3 py-1 rounded-full font-bold">
+                            <span class="text-gray-400 text-sm md:text-base">Duration</span>
+                            <span class="duration-badge text-white px-2 md:px-3 py-1 rounded-full font-bold text-xs md:text-sm">
                                 <?php 
                                 if ($package['duration_hours'] < 24) {
                                     echo $package['duration_hours'] . ' Hours';
@@ -300,21 +320,21 @@ $active_packages = $stmt->fetchAll();
 
                         <!-- Minimum Investment -->
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Minimum</span>
-                            <span class="text-white font-bold"><?php echo formatMoney($package['min_investment']); ?></span>
+                            <span class="text-gray-400 text-sm md:text-base">Minimum</span>
+                            <span class="text-white font-bold text-sm md:text-base"><?php echo formatMoney($package['min_investment']); ?></span>
                         </div>
 
                         <?php if ($package['max_investment']): ?>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Maximum</span>
-                            <span class="text-white font-bold"><?php echo formatMoney($package['max_investment']); ?></span>
+                            <span class="text-gray-400 text-sm md:text-base">Maximum</span>
+                            <span class="text-white font-bold text-sm md:text-base"><?php echo formatMoney($package['max_investment']); ?></span>
                         </div>
                         <?php endif; ?>
 
                         <!-- Potential Return -->
-                        <div class="bg-gray-800/50 rounded-lg p-3">
-                            <p class="text-sm text-gray-400">Example Return</p>
-                            <p class="text-lg text-emerald-400 font-bold">
+                        <div class="bg-gray-800/50 rounded-lg p-2 md:p-3">
+                            <p class="text-xs md:text-sm text-gray-400">Example Return</p>
+                            <p class="text-lg md:text-xl text-emerald-400 font-bold">
                                 <?php echo formatMoney($package['min_investment'] + ($package['min_investment'] * $package['roi_percentage'] / 100)); ?>
                             </p>
                             <p class="text-xs text-gray-500">
@@ -323,15 +343,15 @@ $active_packages = $stmt->fetchAll();
                         </div>
                     </div>
 
-                    <!-- Investment Form -->
+                    <!-- Investment Form - FIXED LOGIC -->
                     <?php if ($user['wallet_balance'] >= $package['min_investment']): ?>
-                    <form method="POST" class="space-y-4">
+                    <form method="POST" class="space-y-3 md:space-y-4">
                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                         <input type="hidden" name="package_id" value="<?php echo $package['id']; ?>">
                         <input type="hidden" name="invest_package" value="1">
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2">Investment Amount</label>
+                            <label class="block text-xs md:text-sm font-medium text-gray-400 mb-2">Investment Amount</label>
                             <input 
                                 type="number" 
                                 name="investment_amount" 
@@ -339,7 +359,7 @@ $active_packages = $stmt->fetchAll();
                                 <?php if ($package['max_investment']): ?>max="<?php echo min($package['max_investment'], $user['wallet_balance']); ?>"<?php endif; ?>
                                 step="0.01"
                                 value="<?php echo $package['min_investment']; ?>"
-                                class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-emerald-500 focus:outline-none"
+                                class="w-full px-3 md:px-4 py-2 md:py-3 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm md:text-base focus:border-emerald-500 focus:outline-none"
                                 required
                             >
                             <div class="flex justify-between text-xs text-gray-500 mt-1">
@@ -350,15 +370,15 @@ $active_packages = $stmt->fetchAll();
 
                         <button 
                             type="submit" 
-                            class="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105"
+                            class="w-full py-2 md:py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold text-sm md:text-base rounded-lg transition-all duration-300 transform hover:scale-105"
                         >
                             <i class="fas fa-chart-line mr-2"></i>Copy Trade Now
                         </button>
                     </form>
                     <?php else: ?>
-                    <div class="text-center py-4">
-                        <p class="text-gray-400 mb-3">Insufficient Balance</p>
-                        <a href="/user/deposit.php" class="inline-block px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition">
+                    <div class="text-center py-3 md:py-4">
+                        <p class="text-gray-400 text-sm md:text-base mb-2 md:mb-3">Insufficient Balance</p>
+                        <a href="/user/deposit.php" class="inline-block px-4 md:px-6 py-2 md:py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold text-sm md:text-base rounded-lg transition">
                             <i class="fas fa-plus mr-2"></i>Deposit Funds
                         </a>
                     </div>
@@ -367,33 +387,33 @@ $active_packages = $stmt->fetchAll();
                 <?php endforeach; ?>
             </div>
 
-            <!-- Package Comparison Table -->
-            <div class="bg-gray-800/30 rounded-xl p-6 backdrop-blur-sm">
-                <h3 class="text-xl font-bold text-white mb-6 text-center">Package Comparison</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
+            <!-- Package Comparison Table - Responsive -->
+            <div class="bg-gray-800/30 rounded-xl p-4 md:p-6 backdrop-blur-sm">
+                <h3 class="text-lg md:text-xl font-bold text-white mb-4 md:mb-6 text-center">Package Comparison</h3>
+                <div class="overflow-x-auto -mx-4 md:mx-0">
+                    <table class="w-full text-xs md:text-sm min-w-[600px]">
                         <thead>
                             <tr class="border-b border-gray-700">
-                                <th class="text-left py-3 text-gray-400">Package</th>
-                                <th class="text-center py-3 text-gray-400">ROI</th>
-                                <th class="text-center py-3 text-gray-400">Duration</th>
-                                <th class="text-center py-3 text-gray-400">Min Investment</th>
-                                <th class="text-center py-3 text-gray-400">Action</th>
+                                <th class="text-left py-2 md:py-3 text-gray-400 px-2">Package</th>
+                                <th class="text-center py-2 md:py-3 text-gray-400 px-2">ROI</th>
+                                <th class="text-center py-2 md:py-3 text-gray-400 px-2">Duration</th>
+                                <th class="text-center py-2 md:py-3 text-gray-400 px-2">Min Investment</th>
+                                <th class="text-center py-2 md:py-3 text-gray-400 px-2">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($packages as $package): ?>
                             <tr class="border-b border-gray-800 hover:bg-gray-800/50">
-                                <td class="py-4">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="text-2xl"><?php echo $package['icon']; ?></span>
-                                        <span class="font-medium text-white"><?php echo $package['name']; ?></span>
+                                <td class="py-3 md:py-4 px-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xl md:text-2xl"><?php echo $package['icon']; ?></span>
+                                        <span class="font-medium text-white text-xs md:text-sm"><?php echo $package['name']; ?></span>
                                     </div>
                                 </td>
-                                <td class="text-center py-4">
+                                <td class="text-center py-3 md:py-4 px-2">
                                     <span class="roi-badge text-white px-2 py-1 rounded font-bold text-xs"><?php echo $package['roi_percentage']; ?>%</span>
                                 </td>
-                                <td class="text-center py-4 text-gray-300">
+                                <td class="text-center py-3 md:py-4 text-gray-300 text-xs md:text-sm px-2">
                                     <?php 
                                     if ($package['duration_hours'] < 24) {
                                         echo $package['duration_hours'] . 'H';
@@ -402,19 +422,19 @@ $active_packages = $stmt->fetchAll();
                                     }
                                     ?>
                                 </td>
-                                <td class="text-center py-4 text-white font-medium">
+                                <td class="text-center py-3 md:py-4 text-white font-medium text-xs md:text-sm px-2">
                                     <?php echo formatMoney($package['min_investment']); ?>
                                 </td>
-                                <td class="text-center py-4">
+                                <td class="text-center py-3 md:py-4 px-2">
                                     <?php if ($user['wallet_balance'] >= $package['min_investment']): ?>
                                     <button 
                                         onclick="scrollToPackage(<?php echo $package['id']; ?>)" 
-                                        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition"
+                                        class="px-3 md:px-4 py-1.5 md:py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition"
                                     >
                                         Trade Now
                                     </button>
                                     <?php else: ?>
-                                    <span class="text-gray-500 text-xs">Insufficient Balance</span>
+                                    <span class="text-gray-500 text-xs">Insufficient</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -425,28 +445,28 @@ $active_packages = $stmt->fetchAll();
             </div>
         </section>
 
-        <!-- Information Section -->
-        <section class="mt-12 grid md:grid-cols-3 gap-6">
-            <div class="bg-gray-800/30 rounded-xl p-6 backdrop-blur-sm text-center">
-                <i class="fas fa-shield-alt text-4xl text-emerald-400 mb-4"></i>
-                <h3 class="font-bold text-white mb-2">100% Secure</h3>
-                <p class="text-gray-400 text-sm">All investments are secured with bank-level encryption and transparency.</p>
+        <!-- Information Section - Responsive Grid -->
+        <section class="mt-8 md:mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div class="bg-gray-800/30 rounded-xl p-4 md:p-6 backdrop-blur-sm text-center">
+                <i class="fas fa-shield-alt text-3xl md:text-4xl text-emerald-400 mb-3 md:mb-4"></i>
+                <h3 class="font-bold text-white mb-2 text-sm md:text-base">100% Secure</h3>
+                <p class="text-gray-400 text-xs md:text-sm">All investments are secured with bank-level encryption and transparency.</p>
             </div>
-            <div class="bg-gray-800/30 rounded-xl p-6 backdrop-blur-sm text-center">
-                <i class="fas fa-clock text-4xl text-yellow-400 mb-4"></i>
-                <h3 class="font-bold text-white mb-2">Guaranteed Returns</h3>
-                <p class="text-gray-400 text-sm">Get your investment plus ROI exactly when your package matures.</p>
+            <div class="bg-gray-800/30 rounded-xl p-4 md:p-6 backdrop-blur-sm text-center">
+                <i class="fas fa-clock text-3xl md:text-4xl text-yellow-400 mb-3 md:mb-4"></i>
+                <h3 class="font-bold text-white mb-2 text-sm md:text-base">Guaranteed Returns</h3>
+                <p class="text-gray-400 text-xs md:text-sm">Get your investment plus ROI exactly when your package matures.</p>
             </div>
-            <div class="bg-gray-800/30 rounded-xl p-6 backdrop-blur-sm text-center">
-                <i class="fas fa-headset text-4xl text-emerald-400 mb-4"></i>
-                <h3 class="font-bold text-white mb-2">24/7 Support</h3>
-                <p class="text-gray-400 text-sm">Our support team is always ready to help you with any questions.</p>
+            <div class="bg-gray-800/30 rounded-xl p-4 md:p-6 backdrop-blur-sm text-center sm:col-span-2 lg:col-span-1">
+                <i class="fas fa-headset text-3xl md:text-4xl text-emerald-400 mb-3 md:mb-4"></i>
+                <h3 class="font-bold text-white mb-2 text-sm md:text-base">24/7 Support</h3>
+                <p class="text-gray-400 text-xs md:text-sm">Our support team is always ready to help you with any questions.</p>
             </div>
         </section>
-    </main><br><br>
+    </main>
 
     <!-- Mobile Bottom Navigation -->
-    <div class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 md:hidden">
+    <div class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 md:hidden z-50">
         <div class="grid grid-cols-4 py-2">
             <a href="/user/dashboard.php" class="flex flex-col items-center py-2 text-gray-400">
                 <i class="fas fa-home text-xl mb-1"></i>
@@ -500,11 +520,13 @@ $active_packages = $stmt->fetchAll();
         // Scroll to specific package
         function scrollToPackage(packageId) {
             const packageElement = document.querySelector(`input[value="${packageId}"]`).closest('.package-card');
-            packageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            packageElement.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.5)';
-            setTimeout(() => {
-                packageElement.style.boxShadow = '';
-            }, 3000);
+            if (packageElement) {
+                packageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                packageElement.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.5)';
+                setTimeout(() => {
+                    packageElement.style.boxShadow = '';
+                }, 3000);
+            }
         }
 
         // Real-time ROI calculation
@@ -529,8 +551,10 @@ $active_packages = $stmt->fetchAll();
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function(e) {
                 const submitButton = this.querySelector('button[type="submit"]');
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-                submitButton.disabled = true;
+                if (submitButton) {
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                    submitButton.disabled = true;
+                }
             });
         });
     </script>
