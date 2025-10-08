@@ -154,7 +154,7 @@ try {
                 'success'
             );
             
-            // Process referral commissions
+            // CRITICAL FIX: Process referral commissions
             processReferralCommissions($transaction, $db);
             
             // Log successful deposit
@@ -243,96 +243,128 @@ try {
 }
 
 /**
- * Process referral commissions for deposits
+ * FIXED: Process referral commissions for deposits
+ * This ensures commissions are ALWAYS processed and credited to wallet
  */
 function processReferralCommissions($transaction, $db) {
     try {
+        error_log("Starting referral commission processing for transaction ID: {$transaction['id']}");
+        
         // Get referrer information
-        $stmt = $db->prepare("SELECT referred_by FROM users WHERE id = ?");
+        $stmt = $db->prepare("SELECT id, referred_by, full_name FROM users WHERE id = ?");
         $stmt->execute([$transaction['user_id']]);
         $user_data = $stmt->fetch();
         
-        if ($user_data && $user_data['referred_by']) {
-            $referrer_id = $user_data['referred_by'];
-            $deposit_amount = $transaction['amount'];
+        if (!$user_data || !$user_data['referred_by']) {
+            error_log("No referrer found for user {$transaction['user_id']} - skipping commission processing");
+            return;
+        }
+        
+        $referrer_id = $user_data['referred_by'];
+        $deposit_amount = $transaction['amount'];
+        
+        error_log("Processing commissions - User ID: {$transaction['user_id']}, Referrer ID: $referrer_id, Deposit: $deposit_amount");
+        
+        // Level 1 commission
+        $l1_rate = (float)getSystemSetting('referral_commission_l1', 10);
+        $l1_commission = ($deposit_amount * $l1_rate) / 100;
+        
+        if ($l1_commission > 0) {
+            error_log("Level 1 Commission: Rate=$l1_rate%, Amount=$l1_commission");
             
-            // Level 1 commission
-            $l1_rate = (float)getSystemSetting('referral_commission_l1', 10);
-            $l1_commission = ($deposit_amount * $l1_rate) / 100;
+            // CRITICAL FIX: Credit Level 1 referrer WALLET BALANCE
+            $stmt = $db->prepare("
+                UPDATE users 
+                SET referral_earnings = referral_earnings + ?, 
+                    wallet_balance = wallet_balance + ?,
+                    updated_at = NOW()
+                WHERE id = ?
+            ");
+            $result = $stmt->execute([$l1_commission, $l1_commission, $referrer_id]);
             
-            if ($l1_commission > 0) {
-                // Credit Level 1 referrer
-                $stmt = $db->prepare("
-                    UPDATE users 
-                    SET referral_earnings = referral_earnings + ?, 
-                        wallet_balance = wallet_balance + ?,
-                        updated_at = NOW()
-                    WHERE id = ?
-                ");
-                $stmt->execute([$l1_commission, $l1_commission, $referrer_id]);
-                
-                // Create commission transaction
-                $stmt = $db->prepare("
-                    INSERT INTO transactions (user_id, type, amount, status, description, created_at) 
-                    VALUES (?, 'referral_commission', ?, 'completed', ?, NOW())
-                ");
-                $description = "Level 1 referral commission from deposit (Receipt: {$transaction['mpesa_receipt']})";
-                $stmt->execute([$referrer_id, $l1_commission, $description]);
-                
-                // Notify Level 1 referrer
-                sendNotification(
-                    $referrer_id,
-                    'Referral Commission Earned! 💰',
-                    "You earned " . formatMoney($l1_commission) . " ({$l1_rate}%) commission from a referral deposit. Keep sharing to earn more!",
-                    'success'
-                );
-                
-                // Check for Level 2 referrer
-                $stmt = $db->prepare("SELECT referred_by FROM users WHERE id = ?");
-                $stmt->execute([$referrer_id]);
-                $l1_referrer_data = $stmt->fetch();
-                
-                if ($l1_referrer_data && $l1_referrer_data['referred_by']) {
-                    $l2_referrer_id = $l1_referrer_data['referred_by'];
-                    $l2_rate = (float)getSystemSetting('referral_commission_l2', 5);
-                    $l2_commission = ($deposit_amount * $l2_rate) / 100;
-                    
-                    if ($l2_commission > 0) {
-                        // Credit Level 2 referrer
-                        $stmt = $db->prepare("
-                            UPDATE users 
-                            SET referral_earnings = referral_earnings + ?, 
-                                wallet_balance = wallet_balance + ?,
-                                updated_at = NOW()
-                            WHERE id = ?
-                        ");
-                        $stmt->execute([$l2_commission, $l2_commission, $l2_referrer_id]);
-                        
-                        // Create L2 commission transaction
-                        $stmt = $db->prepare("
-                            INSERT INTO transactions (user_id, type, amount, status, description, created_at) 
-                            VALUES (?, 'referral_commission', ?, 'completed', ?, NOW())
-                        ");
-                        $l2_description = "Level 2 referral commission from deposit (Receipt: {$transaction['mpesa_receipt']})";
-                        $stmt->execute([$l2_referrer_id, $l2_commission, $l2_description]);
-                        
-                        // Notify Level 2 referrer
-                        sendNotification(
-                            $l2_referrer_id,
-                            'L2 Referral Commission! 🌟',
-                            "You earned " . formatMoney($l2_commission) . " ({$l2_rate}%) Level 2 commission from an indirect referral.",
-                            'success'
-                        );
-                    }
-                }
+            if (!$result) {
+                error_log("CRITICAL ERROR: Failed to credit L1 referrer wallet - Referrer ID: $referrer_id");
+                throw new Exception("Failed to credit L1 referrer wallet");
             }
             
-            // Log commission processing
-            error_log("Referral commissions processed: L1 User $referrer_id earned " . formatMoney($l1_commission));
+            error_log("SUCCESS: Credited L1 referrer ID $referrer_id with " . formatMoney($l1_commission));
+            
+            // Create commission transaction
+            $stmt = $db->prepare("
+                INSERT INTO transactions (user_id, type, amount, status, description, created_at) 
+                VALUES (?, 'referral_commission', ?, 'completed', ?, NOW())
+            ");
+            $description = "Level 1 referral commission ({$l1_rate}%) from deposit by {$user_data['full_name']} (Receipt: {$transaction['mpesa_receipt']})";
+            $stmt->execute([$referrer_id, $l1_commission, $description]);
+            
+            error_log("Created commission transaction for L1 referrer");
+            
+            // Notify Level 1 referrer
+            sendNotification(
+                $referrer_id,
+                'Referral Commission Earned! 💰',
+                "You earned " . formatMoney($l1_commission) . " ({$l1_rate}%) commission from {$user_data['full_name']}'s deposit. The amount has been added to your wallet!",
+                'success'
+            );
+            
+            // Check for Level 2 referrer
+            $stmt = $db->prepare("SELECT id, referred_by, full_name FROM users WHERE id = ?");
+            $stmt->execute([$referrer_id]);
+            $l1_referrer_data = $stmt->fetch();
+            
+            if ($l1_referrer_data && $l1_referrer_data['referred_by']) {
+                $l2_referrer_id = $l1_referrer_data['referred_by'];
+                $l2_rate = (float)getSystemSetting('referral_commission_l2', 5);
+                $l2_commission = ($deposit_amount * $l2_rate) / 100;
+                
+                error_log("Level 2 Commission: Rate=$l2_rate%, Amount=$l2_commission");
+                
+                if ($l2_commission > 0) {
+                    // Credit Level 2 referrer
+                    $stmt = $db->prepare("
+                        UPDATE users 
+                        SET referral_earnings = referral_earnings + ?, 
+                            wallet_balance = wallet_balance + ?,
+                            updated_at = NOW()
+                        WHERE id = ?
+                    ");
+                    $result = $stmt->execute([$l2_commission, $l2_commission, $l2_referrer_id]);
+                    
+                    if (!$result) {
+                        error_log("WARNING: Failed to credit L2 referrer wallet - Referrer ID: $l2_referrer_id");
+                    } else {
+                        error_log("SUCCESS: Credited L2 referrer ID $l2_referrer_id with " . formatMoney($l2_commission));
+                    }
+                    
+                    // Create L2 commission transaction
+                    $stmt = $db->prepare("
+                        INSERT INTO transactions (user_id, type, amount, status, description, created_at) 
+                        VALUES (?, 'referral_commission', ?, 'completed', ?, NOW())
+                    ");
+                    $l2_description = "Level 2 referral commission ({$l2_rate}%) from deposit by {$user_data['full_name']} (Receipt: {$transaction['mpesa_receipt']})";
+                    $stmt->execute([$l2_referrer_id, $l2_commission, $l2_description]);
+                    
+                    // Notify Level 2 referrer
+                    sendNotification(
+                        $l2_referrer_id,
+                        'L2 Referral Commission! 🌟',
+                        "You earned " . formatMoney($l2_commission) . " ({$l2_rate}%) Level 2 commission from an indirect referral's deposit.",
+                        'success'
+                    );
+                    
+                    error_log("Created commission transaction for L2 referrer");
+                }
+            }
         }
+        
+        // Log commission processing
+        error_log("Referral commissions processed successfully: L1 User $referrer_id earned " . formatMoney($l1_commission));
+        
     } catch (Exception $e) {
-        error_log("Referral Commission Processing Error: " . $e->getMessage());
-        // Don't fail the main transaction for referral errors
+        error_log("CRITICAL ERROR in Referral Commission Processing: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        // Re-throw to fail the transaction
+        throw new Exception("Referral commission processing failed: " . $e->getMessage());
     }
 }
 
