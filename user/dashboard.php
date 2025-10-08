@@ -120,8 +120,11 @@ $notifications = $stmt->fetchAll();
         .status-yellow { color: #f59e0b; }
         .status-red { color: #ef4444; }
         
+        /* FIXED NOTIFICATION DROPDOWN - RESPONSIVE */
         .notification-dropdown {
             animation: slideDown 0.3s ease-out;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         @keyframes slideDown {
@@ -129,16 +132,80 @@ $notifications = $stmt->fetchAll();
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 640px) {
+        /* Desktop: Positioned relative to bell icon */
+        @media (min-width: 768px) {
+            .notification-dropdown {
+                position: absolute;
+                right: 0;
+                top: calc(100% + 0.5rem);
+                width: 24rem;
+                max-height: 32rem;
+            }
+        }
+
+        /* Mobile: Full screen overlay */
+        @media (max-width: 767px) {
             .notification-dropdown {
                 position: fixed !important;
-                top: 70px !important;
-                left: 16px !important;
-                right: 16px !important;
-                width: auto !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100vh !important;
+                z-index: 9999 !important;
                 margin: 0 !important;
-                max-height: calc(100vh - 100px) !important;
+                border-radius: 0 !important;
+                animation: slideUp 0.3s ease-out !important;
             }
+
+            @keyframes slideUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+        }
+
+        /* Scrollbar styling */
+        .notification-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-dropdown::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 0.5);
+        }
+
+        .notification-dropdown::-webkit-scrollbar-thumb {
+            background: rgba(75, 85, 99, 0.8);
+            border-radius: 3px;
+        }
+
+        /* Overlay for mobile */
+        .notification-overlay {
+            display: none;
+        }
+
+        @media (max-width: 767px) {
+            .notification-overlay.active {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 9998;
+            }
+        }
+
+        /* Badge pulse */
+        .notification-badge {
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         
         /* Live activity ticker styles */
@@ -153,7 +220,7 @@ $notifications = $stmt->fetchAll();
         .ticker {
             display: flex;
             animation: ticker 30s linear infinite;
-            white-space: nowrap;
+            whitespace: nowrap;
         }
         
         .ticker:hover {
@@ -174,6 +241,9 @@ $notifications = $stmt->fetchAll();
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
+
+    <!-- Notification Overlay for Mobile -->
+    <div id="notificationOverlay" class="notification-overlay"></div>
 
     <!-- Header -->
     <header class="bg-gray-800/50 backdrop-blur-md border-b border-gray-700 sticky top-0 z-50">
@@ -215,17 +285,17 @@ $notifications = $stmt->fetchAll();
                             </span>
                         </button>
                         
-                        <!-- Notification Dropdown -->
-                        <div id="notificationDropdown" class="notification-dropdown absolute right-0 top-full mt-2 w-80 md:w-80 sm:w-screen sm:right-0 sm:left-0 sm:mx-4 sm:mt-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 hidden z-50 max-h-96 overflow-y-auto">
-                            <div class="p-4 border-b border-gray-700">
+                        <!-- Notification Dropdown - FIXED RESPONSIVE -->
+                        <div id="notificationDropdown" class="notification-dropdown bg-gray-800 rounded-xl shadow-2xl border border-gray-700 hidden z-50">
+                            <div class="p-4 border-b border-gray-700 bg-gray-800 sticky top-0 z-10">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold text-white">Notifications</h3>
-                                    <button id="closeNotifications" class="text-gray-400 hover:text-white md:hidden">
-                                        <i class="fas fa-times"></i>
+                                    <button id="closeNotifications" class="text-gray-400 hover:text-white transition">
+                                        <i class="fas fa-times text-xl"></i>
                                     </button>
                                 </div>
                             </div>
-                            <div class="max-h-80 overflow-y-auto">
+                            <div class="overflow-y-auto" style="max-height: calc(100vh - 160px);">
                                 <?php if (empty($notifications)): ?>
                                     <div class="p-8 text-center">
                                         <i class="fas fa-bell-slash text-3xl text-gray-600 mb-3"></i>
@@ -233,7 +303,7 @@ $notifications = $stmt->fetchAll();
                                     </div>
                                 <?php else: ?>
                                     <?php foreach ($notifications as $notification): ?>
-                                    <div class="p-4 border-b border-gray-700 last:border-b-0 <?php echo !$notification['is_read'] ? 'bg-gray-700/30' : ''; ?>">
+                                    <div class="p-4 border-b border-gray-700 last:border-b-0 <?php echo !$notification['is_read'] ? 'bg-gray-700/30' : ''; ?> hover:bg-gray-700/50 transition">
                                         <div class="flex items-start space-x-3">
                                             <i class="fas <?php 
                                             echo match($notification['type']) {
@@ -242,7 +312,7 @@ $notifications = $stmt->fetchAll();
                                                 'error' => 'fa-exclamation-circle text-red-400',
                                                 default => 'fa-info-circle text-blue-400'
                                             };
-                                            ?> mt-1"></i>
+                                            ?> mt-1 text-lg"></i>
                                             <div class="flex-1 min-w-0">
                                                 <h4 class="font-medium text-white"><?php echo htmlspecialchars($notification['title']); ?></h4>
                                                 <p class="text-sm text-gray-300 mt-1"><?php echo htmlspecialchars($notification['message']); ?></p>
@@ -253,7 +323,7 @@ $notifications = $stmt->fetchAll();
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </div>
-                            <div class="p-4 border-t border-gray-700">
+                            <div class="p-4 border-t border-gray-700 bg-gray-800">
                                 <a href="/user/notifications.php" class="text-emerald-400 hover:text-emerald-300 text-sm flex items-center justify-center">
                                     View All Notifications <i class="fas fa-arrow-right ml-2"></i>
                                 </a>
@@ -400,35 +470,64 @@ $notifications = $stmt->fetchAll();
         </section>
 
         <!-- Rest of dashboard continues... -->
-        <!-- (I'll continue in the next part to stay within limits) -->
         
     </main>
 
     <script>
-        // Notification dropdown
+        // FIXED Notification dropdown - Fully Responsive
         document.addEventListener('DOMContentLoaded', function() {
             const bell = document.getElementById('notificationBell');
             const dropdown = document.getElementById('notificationDropdown');
             const closeBtn = document.getElementById('closeNotifications');
+            const overlay = document.getElementById('notificationOverlay');
+
+            function openNotifications() {
+                dropdown.classList.remove('hidden');
+                overlay.classList.add('active');
+                // Prevent body scroll on mobile
+                if (window.innerWidth < 768) {
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            function closeNotifications() {
+                dropdown.classList.add('hidden');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
 
             bell.addEventListener('click', function(e) {
                 e.stopPropagation();
-                dropdown.classList.toggle('hidden');
-            });
-
-            closeBtn?.addEventListener('click', function() {
-                dropdown.classList.add('hidden');
-            });
-
-            document.addEventListener('click', function(e) {
-                if (!dropdown.contains(e.target) && !bell.contains(e.target)) {
-                    dropdown.classList.add('hidden');
+                if (dropdown.classList.contains('hidden')) {
+                    openNotifications();
+                } else {
+                    closeNotifications();
                 }
             });
 
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeNotifications();
+            });
+
+            // Close on overlay click (mobile)
+            overlay.addEventListener('click', function() {
+                closeNotifications();
+            });
+
+            // Close on escape key
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    dropdown.classList.add('hidden');
+                if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                    closeNotifications();
+                }
+            });
+
+            // Close when clicking outside (desktop only)
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth >= 768) {
+                    if (!dropdown.contains(e.target) && !bell.contains(e.target)) {
+                        closeNotifications();
+                    }
                 }
             });
         });
