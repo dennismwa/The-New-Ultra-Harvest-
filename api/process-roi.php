@@ -1,6 +1,6 @@
 <?php
 /**
- * Enhanced ROI Processing Script
+ * Enhanced ROI Processing Script - COMPLETE VERSION WITH FIXES
  * This script should be run via cron job every hour to process matured packages
  * Cron: 0 * * * * /usr/bin/php /path/to/your/api/process-roi.php
  * Or via web interface for manual processing
@@ -32,7 +32,7 @@ try {
     
     // Get all matured packages
     $stmt = $db->prepare("
-        SELECT ap.*, u.email, u.full_name, u.phone, p.name as package_name
+        SELECT ap.*, u.email, u.full_name, u.phone, u.referred_by, p.name as package_name, p.roi_percentage
         FROM active_packages ap
         JOIN users u ON ap.user_id = u.id
         JOIN packages p ON ap.package_id = p.id
@@ -64,7 +64,7 @@ try {
 
             echo "Processing package ID {$package_id} for user {$package['full_name']} - Investment: " . formatMoney($investment_amount) . ", ROI: " . formatMoney($roi_amount) . "\n";
 
-            // Update user wallet balance (return investment + ROI)
+            // CRITICAL FIX 1: Update user wallet balance (return investment + ROI)
             $stmt = $db->prepare("
                 UPDATE users 
                 SET wallet_balance = wallet_balance + ?,
@@ -72,23 +72,41 @@ try {
                     updated_at = NOW()
                 WHERE id = ?
             ");
-            $stmt->execute([$total_return, $roi_amount, $user_id]);
+            $result = $stmt->execute([$total_return, $roi_amount, $user_id]);
+            
+            if (!$result) {
+                throw new Exception("Failed to update user wallet balance");
+            }
+            
+            echo "  ✓ Wallet credited with " . formatMoney($total_return) . "\n";
 
-            // Create ROI payment transaction
+            // CRITICAL FIX 2: Create ROI payment transaction
             $stmt = $db->prepare("
                 INSERT INTO transactions (user_id, type, amount, status, description, created_at) 
                 VALUES (?, 'roi_payment', ?, 'completed', ?, NOW())
             ");
-            $description = "ROI payment for {$package['package_name']} package - Investment: " . formatMoney($investment_amount) . " + ROI: " . formatMoney($roi_amount);
-            $stmt->execute([$user_id, $total_return, $description]);
+            $description = "ROI payment for {$package['package_name']} package - Investment: " . formatMoney($investment_amount) . " + ROI: " . formatMoney($roi_amount) . " ({$package['roi_percentage']}%)";
+            $result = $stmt->execute([$user_id, $total_return, $description]);
+            
+            if (!$result) {
+                throw new Exception("Failed to create ROI transaction");
+            }
+            
+            echo "  ✓ ROI transaction created\n";
 
-            // Mark package as completed
+            // CRITICAL FIX 3: Mark package as completed
             $stmt = $db->prepare("
                 UPDATE active_packages 
                 SET status = 'completed', completed_at = NOW() 
                 WHERE id = ?
             ");
-            $stmt->execute([$package_id]);
+            $result = $stmt->execute([$package_id]);
+            
+            if (!$result) {
+                throw new Exception("Failed to mark package as completed");
+            }
+            
+            echo "  ✓ Package marked as completed\n";
 
             // Send notification to user
             sendNotification(
@@ -97,14 +115,13 @@ try {
                 "Your {$package['package_name']} package has matured successfully! " . formatMoney($total_return) . " has been credited to your wallet (Investment: " . formatMoney($investment_amount) . " + ROI: " . formatMoney($roi_amount) . "). Start a new investment to continue earning!",
                 'success'
             );
+            
+            echo "  ✓ User notification sent\n";
 
-            // Process referral commissions if user was referred
-            $stmt = $db->prepare("SELECT referred_by FROM users WHERE id = ?");
-            $stmt->execute([$user_id]);
-            $referrer = $stmt->fetch();
-
-            if ($referrer && $referrer['referred_by']) {
-                processReferralCommissions($user_id, $referrer['referred_by'], $roi_amount, $db);
+            // CRITICAL FIX 4: Process referral commissions if user was referred
+            if ($package['referred_by']) {
+                echo "  Processing referral commissions for ROI...\n";
+                processReferralCommissionsForROI($user_id, $package['referred_by'], $roi_amount, $package['full_name'], $db);
             }
 
             $db->commit();
@@ -230,18 +247,21 @@ try {
 }
 
 /**
- * Process referral commissions for ROI payments
+ * FIXED: Process referral commissions for ROI payments
+ * This ensures commissions are credited to wallet balance on ROI payments
  */
-function processReferralCommissions($user_id, $referrer_id, $roi_amount, $db) {
+function processReferralCommissionsForROI($user_id, $referrer_id, $roi_amount, $user_name, $db) {
     try {
-        echo "Processing referral commissions for ROI payment...\n";
+        echo "    Starting ROI commission processing...\n";
         
         // Level 1 commission (direct referrer)
         $l1_rate = (float)getSystemSetting('referral_commission_l1', 10);
         $l1_commission = ($roi_amount * $l1_rate) / 100;
 
         if ($l1_commission > 0) {
-            // Credit referrer
+            echo "    Calculating L1 commission: Rate={$l1_rate}%, Amount=" . formatMoney($l1_commission) . "\n";
+            
+            // CRITICAL FIX: Credit referrer WALLET BALANCE
             $stmt = $db->prepare("
                 UPDATE users 
                 SET referral_earnings = referral_earnings + ?, 
@@ -249,34 +269,44 @@ function processReferralCommissions($user_id, $referrer_id, $roi_amount, $db) {
                     updated_at = NOW()
                 WHERE id = ?
             ");
-            $stmt->execute([$l1_commission, $l1_commission, $referrer_id]);
+            $result = $stmt->execute([$l1_commission, $l1_commission, $referrer_id]);
+            
+            if (!$result) {
+                throw new Exception("Failed to credit L1 referrer wallet");
+            }
+            
+            echo "    ✓ L1 Referrer (ID: $referrer_id) credited with " . formatMoney($l1_commission) . "\n";
 
             // Create commission transaction
             $stmt = $db->prepare("
                 INSERT INTO transactions (user_id, type, amount, status, description, created_at) 
                 VALUES (?, 'referral_commission', ?, 'completed', ?, NOW())
             ");
-            $description = "Level 1 referral commission ({$l1_rate}%) from ROI payment";
+            $description = "Level 1 referral commission ({$l1_rate}%) from ROI payment by {$user_name}";
             $stmt->execute([$referrer_id, $l1_commission, $description]);
+            
+            echo "    ✓ Commission transaction created\n";
 
             // Send notification
             sendNotification(
                 $referrer_id,
                 'Referral Commission Earned! 💰',
-                "You earned " . formatMoney($l1_commission) . " ({$l1_rate}%) commission from your referral's ROI payment. Keep building your network!",
+                "You earned " . formatMoney($l1_commission) . " ({$l1_rate}%) commission from {$user_name}'s ROI payment. Amount has been added to your wallet!",
                 'success'
             );
-
-            echo "Level 1 commission processed: " . formatMoney($l1_commission) . " to user $referrer_id\n";
+            
+            echo "    ✓ Notification sent to L1 referrer\n";
 
             // Check for Level 2 referrer
-            $stmt = $db->prepare("SELECT referred_by FROM users WHERE id = ?");
+            $stmt = $db->prepare("SELECT id, referred_by FROM users WHERE id = ?");
             $stmt->execute([$referrer_id]);
             $l2_referrer = $stmt->fetch();
 
             if ($l2_referrer && $l2_referrer['referred_by']) {
                 $l2_rate = (float)getSystemSetting('referral_commission_l2', 5);
                 $l2_commission = ($roi_amount * $l2_rate) / 100;
+                
+                echo "    Calculating L2 commission: Rate={$l2_rate}%, Amount=" . formatMoney($l2_commission) . "\n";
 
                 if ($l2_commission > 0) {
                     // Credit L2 referrer
@@ -287,32 +317,42 @@ function processReferralCommissions($user_id, $referrer_id, $roi_amount, $db) {
                             updated_at = NOW()
                         WHERE id = ?
                     ");
-                    $stmt->execute([$l2_commission, $l2_commission, $l2_referrer['referred_by']]);
+                    $result = $stmt->execute([$l2_commission, $l2_commission, $l2_referrer['referred_by']]);
+                    
+                    if (!$result) {
+                        throw new Exception("Failed to credit L2 referrer wallet");
+                    }
+                    
+                    echo "    ✓ L2 Referrer (ID: {$l2_referrer['referred_by']}) credited with " . formatMoney($l2_commission) . "\n";
 
                     // Create L2 commission transaction
                     $stmt = $db->prepare("
                         INSERT INTO transactions (user_id, type, amount, status, description, created_at) 
                         VALUES (?, 'referral_commission', ?, 'completed', ?, NOW())
                     ");
-                    $l2_description = "Level 2 referral commission ({$l2_rate}%) from ROI payment";
+                    $l2_description = "Level 2 referral commission ({$l2_rate}%) from ROI payment by {$user_name}";
                     $stmt->execute([$l2_referrer['referred_by'], $l2_commission, $l2_description]);
 
                     // Send L2 notification
                     sendNotification(
                         $l2_referrer['referred_by'],
                         'L2 Referral Commission! 🌟',
-                        "You earned " . formatMoney($l2_commission) . " ({$l2_rate}%) Level 2 commission from an indirect referral's ROI.",
+                        "You earned " . formatMoney($l2_commission) . " ({$l2_rate}%) Level 2 commission from an indirect referral's ROI payment.",
                         'success'
                     );
-
-                    echo "Level 2 commission processed: " . formatMoney($l2_commission) . " to user {$l2_referrer['referred_by']}\n";
+                    
+                    echo "    ✓ L2 commission processed successfully\n";
                 }
             }
         }
+        
+        echo "    ✓ All referral commissions processed successfully\n";
+        
     } catch (Exception $e) {
-        echo "Error processing referral commissions: " . $e->getMessage() . "\n";
+        echo "    ✗ Error processing referral commissions: " . $e->getMessage() . "\n";
         error_log("Referral Commission Processing Error: " . $e->getMessage());
-        // Don't fail the main ROI processing for referral errors
+        // Re-throw to fail the main transaction
+        throw new Exception("ROI referral commission processing failed: " . $e->getMessage());
     }
 }
 
